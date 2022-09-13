@@ -104,4 +104,18 @@
   .spacer {
     margin-top: 36px;
   }
-  
+
+  .genderFix{
+    display: flex;
+  }
+
+  .genderFix > div {
+    display: flex;
+    width: 50%;
+  }
+
+  .genderFix > div > p {
+    margin-top: 6px;
+    margin-left: 10px;
+    font-size: 20px;
+  }

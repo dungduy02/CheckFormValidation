@@ -26,7 +26,27 @@ function Validator(options) {
         // Lặp qua từng rules & kiểm tra
         // Nếu có lỗi thì dừng việc kiểm tra
         for(var i = 0; i < rules.length; ++i){
-            errorMessage = rules[i](inputElement.value);
+            switch(inputElement.type){
+                case 'radio':
+                    errorMessage = rules[i](formElement.querySelector(rule.selector + ":checked"));
+                    break;
+                case 'checkbox':
+                    if(!input.matches(':checked')) {
+                        values[input.name] = '';
+                        return values;
+                    };
+
+                    if(!Array.isArray(values[input.name])){
+                        values[input.name] = [];
+                    }
+
+                    values[input.name].push(input.value)
+                    break;
+                
+                default:
+                    errorMessage = rules[i](inputElement.value);
+
+            }
             if(errorMessage) break;
         }
 
@@ -67,7 +87,37 @@ function Validator(options) {
                     var enabledInputs = formElement.querySelectorAll('[name]');
 
                     var formValues = Array.from(enabledInputs).reduce(function(values, input){
-                        values[input.name] = input.value
+                        switch(input.type){
+                            case 'radio':
+                                values[input.name] = formElement.querySelector('input[name="' + input.name + '"]:checked').value;
+                                break;
+                            case 'checkbox':
+                                // if(input.matches(':checked')){
+                                //     values[input.name] = formElement.querySelector('input[name="' + input.name + '"]:checked').value;
+                                // }else{
+                                //     values[input.name] ="";
+                                // }
+                                // break;
+
+                            case 'checkbox':
+                                if(!input.matches(':checked')) {
+                                    values[input.name] = '';
+                                    return values;
+                                };
+
+                                if(!Array.isArray(values[input.name])){
+                                    values[input.name] = [];
+                                }
+
+                                values[input.name].push(input.value)
+                                break;
+                            case 'file':
+                                values[input.name] = input.files;
+                                break;
+                            default:
+                                values[input.name] = input.value
+
+                        }
                         return values; 
                     }, {});
                     
@@ -89,9 +139,9 @@ function Validator(options) {
             }else{
                 selectorRules[rule.selector] = [rule.test];
             }
-            var inputElement = formElement.querySelector(rule.selector);
+            var inputElements = formElement.querySelectorAll(rule.selector);
 
-            if (inputElement) {
+            Array.from(inputElements).forEach(function(inputElement){
                 // Xử lý trường hợp blur khỏi input 
                 inputElement.onblur = function () { // value: inputElement.value
                     validate(inputElement, rule);    // test func: rule.test
@@ -104,9 +154,9 @@ function Validator(options) {
                     getParent(inputElement, options.formGroupSelect).classList.remove('invalid');
 
                 }
-            }
+            })
+            
         })
-        console.log(selectorRules);
     }
 
 }
@@ -119,7 +169,7 @@ Validator.isRequired = function(selector, message){
     return {
         selector: selector,
         test: function(value){
-            return value.trim() ? undefined : message || "Vui lòng nhập trường này"
+            return value ? undefined : message || "Vui lòng nhập trường này"
         }
     }
 }
